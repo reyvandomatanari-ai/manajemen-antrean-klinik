@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors'); // <-- 1. Ini kode CORS pertama (mengambil modul)
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 
 app.use(cors()); // <-- 2. Ini kode CORS kedua (mengizinkan akses dari frontend)
 app.use(express.json());
