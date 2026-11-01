@@ -70,39 +70,49 @@
     </div>
 
     <script>
-        // Mengambil elemen form dan elemen output tiket
         const form = document.getElementById('formAman');
-        const tiket = document.getElementById('tiketAntrean');
+const tiket = document.getElementById('tiketAntrean');
 
-        form.addEventListener('submit', function(event) {
-            // Mencegah halaman reload saat tombol ditekan
-            event.preventDefault();
+form.addEventListener('submit', function(event) {
+    event.preventDefault();
 
-            // Mengambil data yang diinput oleh user
-            const namaInput = document.getElementById('nama').value;
-            const dokterInput = document.getElementById('dokter').options[document.getElementById('dokter').selectedIndex].text;
-            const tanggalInput = document.getElementById('tanggal').value;
-            const jamInput = document.getElementById('jam').options[document.getElementById('jam').selectedIndex].text;
+    // 1. Ambil data input
+    const namaInput = document.getElementById('nama').value;
+    const dokterInput = document.getElementById('dokter').options[document.getElementById('dokter').selectedIndex].text;
+    const tanggalInput = document.getElementById('tanggal').value;
+    const jamInput = document.getElementById('jam').options[document.getElementById('jam').selectedIndex].text;
 
-            // Membuat simulasi nomor antrean acak (nanti bagian ini akan diganti oleh sistem database backend)
-            const nomorAcak = Math.floor(Math.random() * 50) + 1;
-            const formatNomor = 'A-' + String(nomorAcak).padStart(3, '0');
+    // 2. Ambil data antrean lama dari LocalStorage (jika ada) atau buat array kosong
+    let daftarAntrean = JSON.parse(localStorage.getItem('daftarAntrean')) || [];
 
-            // Memasukkan data input ke dalam teks tiket
-            document.getElementById('outputNama').innerText = namaInput;
-            document.getElementById('outputDokter').innerText = dokterInput;
-            document.getElementById('outputJadwal').innerText = tanggalInput + ' | ' + jamInput;
-            document.getElementById('outputNomor').innerText = formatNomor;
+    // 3. Buat nomor urut antrean baru berdasarkan jumlah data yang ada
+    const nomorUrut = daftarAntrean.length + 1;
+    const formatNomor = 'A-' + String(nomorUrut).padStart(3, '0');
 
-            // Menampilkan tiket antrean ke layar
-            tiket.style.display = 'block';
+    // 4. Bungkus data pasien menjadi objek baru
+    const pasienBaru = {
+        nomor: formatNomor,
+        nama: namaInput,
+        dokter: dokterInput,
+        jam: jamInput,
+        status: 'Menunggu'
+    };
 
-            // Mengosongkan form kembali setelah mendaftar
-            form.reset();
-            
-            // Otomatis scroll layar kebawah agar tiket langsung terlihat
-            tiket.scrollIntoView({ behavior: 'smooth' });
-        });
+    // 5. Simpan objek pasien baru ke dalam array, lalu masukkan kembali ke LocalStorage
+    daftarAntrean.push(pasienBaru);
+    localStorage.setItem('daftarAntrean', JSON.stringify(daftarAntrean));
+
+    // 6. Tampilkan ke Tiket Digital Pasien
+    document.getElementById('outputNama').innerText = namaInput;
+    document.getElementById('outputDokter').innerText = dokterInput;
+    document.getElementById('outputJadwal').innerText = tanggalInput + ' | ' + jamInput;
+    document.getElementById('outputNomor').innerText = formatNomor;
+
+    tiket.style.display = 'block';
+    form.reset();
+    tiket.scrollIntoView({ behavior: 'smooth' });
+});
+
     </script>
 
 </body>

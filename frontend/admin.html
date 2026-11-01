@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Admin - Klinik Sehat</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .dashboard-container { max-width: 900px; margin: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #2c3e50; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #f4f7f6; padding-bottom: 10px; }
+        .counter { font-size: 64px; font-weight: bold; color: #3498db; text-align: center; margin: 20px 0; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        .btn-next { background-color: #3498db; color: white; }
+        .btn-next:hover { background-color: #2980b9; }
+        .btn-reset { background-color: #e74c3c; color: white; }
+        .btn-reset:hover { background-color: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; color: #333; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .status-waiting { background-color: #ffeaa7; color: #d63031; }
+        .status-done { background-color: #badc58; color: #6ab04c; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="header">
+        <h2>Dasbor Antrean Klinik (Bagian Admin)</h2>
+        <span id="live-clock">Maju Terus Klinik Sehat</span>
+    </div>
+
+    <div class="grid">
+        <!-- Kolom Kiri: Kontrol Antrean Utama -->
+        <div class="card">
+            <h3>Antrean Sekarang</h3>
+            <div class="counter" id="current-number">A-001</div>
+            <button class="btn btn-next" onclick="panggilAntrean()">Panggil Antrean Berikutnya</button>
+            <button class="btn btn-reset" onclick="resetAntrean()">Kosongkan Antrean</button>
+        </div>
+
+        <!-- Kolom Kanan: Daftar Pasien Hari Ini -->
+        <div class="card">
+            <h3>Daftar Pasien Menunggu (Hari Ini)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Pasien</th>
+                        <th>Dokter</th>
+                        <th>Jam</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="patient-table-body">
+                    <!-- Data simulasi awal -->
+                    <tr id="row-1">
+                        <td><strong>A-001</strong></td>
+                        <td>Budi Santoso</td>
+                        <td>dr. Budi (Umum)</td>
+                        <td>09:00 - 10:00</td>
+                        <td><span class="status-badge status-done" id="status-1">Dipanggil</span></td>
+                    </tr>
+                    <tr id="row-2">
+                        <td><strong>A-002</strong></td>
+                        <td>Siti Aminah</td>
+                        <td>dr. Siti (Anak)</td>
+                        <td>10:00 - 11:00</td>
+                        <td><span class="status-badge status-waiting" id="status-2">Menunggu</span></td>
+                    </tr>
+                    <tr id="row-3">
+                        <td><strong>A-003</strong></td>
+                        <td>Andika Pratama</td>
+                        <td>dr. Andika (Gigi)</td>
+                        <td>13:00 - 14:00</td>
+                        <td><span class="status-badge status-waiting" id="status-3">Menunggu</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let daftarAntrean = [];
+
+    // Fungsi untuk memuat data dari LocalStorage dan menggambar tabel
+    function muatDataPasien() {
+        daftarAntrean = JSON.parse(localStorage.getItem('daftarAntrean')) || [];
+        const tableBody = document.getElementById('patient-table-body');
+        
+        if (daftarAntrean.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#95a5a6;">Tidak ada antrean tersisa hari ini</td></tr>`;
+            document.getElementById('current-number').innerText = "A-000";
+            return;
+        }
+
+        // Bersihkan tabel lama, lalu isi dengan data baru
+        tableBody.innerHTML = "";
+        daftarAntrean.forEach((pasien) => {
+            let badgeClass = 'status-waiting';
+            if (pasien.status === 'Dipanggil' || pasien.status === 'Selesai') {
+                badgeClass = 'status-done';
+            }
+            
+            tableBody.innerHTML += `
+                <tr>
+                    <td><strong>${pasien.nomor}</strong></td>
+                    <td>${pasien.nama}</td>
+                    <td>${pasien.dokter}</td>
+                    <td>${pasien.jam}</td>
+                    <td><span class="status-badge ${badgeClass}">${pasien.status}</span></td>
+                </tr>
+            `;
+        });
+
+        // Tampilkan nomor pasien yang STATUSNYA SEDANG DIPANGGIL di layar besar
+        const pasienAktif = daftarAntrean.find(p => p.status === 'Dipanggil');
+        if (pasienAktif) {
+            document.getElementById('current-number').innerText = pasienAktif.nomor;
+        } else {
+            // Jika tidak ada yang berstatus 'Dipanggil', cek apakah semua sudah 'Selesai'
+            const semuaSelesai = daftarAntrean.every(p => p.status === 'Selesai');
+            if (semuaSelesai && daftarAntrean.length > 0) {
+                document.getElementById('current-number').innerText = daftarAntrean[daftarAntrean.length - 1].nomor;
+            } else {
+                document.getElementById('current-number').innerText = "A-000";
+            }
+        }
+    }
+
+    function panggilAntrean() {
+        if (daftarAntrean.length === 0) return alert("Belum ada pasien yang mendaftar!");
+
+        // 1. Cari tahu apakah ada pasien yang statusnya masih 'Dipanggil'. Jika ada, ubah dulu menjadi 'Selesai'.
+        const indeksDipanggil = daftarAntrean.findIndex(p => p.status === 'Dipanggil');
+        if (indeksDipanggil !== -1) {
+            daftarAntrean[indeksDipanggil].status = 'Selesai';
+        }
+
+        // 2. Cari pasien berikutnya yang statusnya masih 'Menunggu'
+        const indeksBerikutnya = daftarAntrean.findIndex(p => p.status === 'Menunggu');
+
+        if (indeksBerikutnya !== -1) {
+            // Jika ketemu pasien yang menunggu, ubah statusnya menjadi 'Dipanggil'
+            daftarAntrean[indeksBerikutnya].status = 'Dipanggil';
+        } else {
+            // Jika tidak ada lagi pasien yang 'Menunggu'
+            localStorage.setItem('daftarAntrean', JSON.stringify(daftarAntrean));
+            muatDataPasien();
+            return alert("Semua pasien dalam daftar hari ini sudah selesai dipanggil!");
+        }
+
+        // 3. Simpan perubahan ke LocalStorage dan gambar ulang tabelnya
+        localStorage.setItem('daftarAntrean', JSON.stringify(daftarAntrean));
+        muatDataPasien();
+    }
+
+    function resetAntrean() {
+        if (confirm("Apakah Anda yakin ingin mengosongkan dasbor antrean hari ini?")) {
+            localStorage.removeItem('daftarAntrean');
+            muatDataPasien();
+        }
+    }
+
+    // Jalankan pertama kali saat halaman admin dibuka
+    muatDataPasien();
+</script>
+
+
+</body>
+</html>
