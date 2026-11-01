@@ -19,6 +19,9 @@
 
 <div class="container">
     <h2>Pendaftaran Antrean Klinik</h2>
+    <div style="text-align: right; margin-bottom: 15px;">
+        <a href="admin.html" style="color: #3498db; text-decoration: none; font-weight: bold; font-size: 14px;">+ Masuk Halaman Admin &rarr;</a>
+    </div>
     <form id="formAman">
         <div class="form-group">
             <label for="nama">Nama Lengkap Pasien</label>
@@ -76,41 +79,53 @@ const tiket = document.getElementById('tiketAntrean');
 form.addEventListener('submit', function(event) {
     event.preventDefault();
 
-    // 1. Ambil data input
+    // 1. Mengambil data yang diinput oleh pasien
     const namaInput = document.getElementById('nama').value;
     const dokterInput = document.getElementById('dokter').options[document.getElementById('dokter').selectedIndex].text;
     const tanggalInput = document.getElementById('tanggal').value;
     const jamInput = document.getElementById('jam').options[document.getElementById('jam').selectedIndex].text;
 
-    // 2. Ambil data antrean lama dari LocalStorage (jika ada) atau buat array kosong
-    let daftarAntrean = JSON.parse(localStorage.getItem('daftarAntrean')) || [];
-
-    // 3. Buat nomor urut antrean baru berdasarkan jumlah data yang ada
-    const nomorUrut = daftarAntrean.length + 1;
-    const formatNomor = 'A-' + String(nomorUrut).padStart(3, '0');
-
-    // 4. Bungkus data pasien menjadi objek baru
-    const pasienBaru = {
-        nomor: formatNomor,
+    // 2. Bungkus data menjadi objek untuk dikirim ke backend
+    const dataPasien = {
         nama: namaInput,
         dokter: dokterInput,
-        jam: jamInput,
-        status: 'Menunggu'
+        jam: jamInput
     };
 
-    // 5. Simpan objek pasien baru ke dalam array, lalu masukkan kembali ke LocalStorage
-    daftarAntrean.push(pasienBaru);
-    localStorage.setItem('daftarAntrean', JSON.stringify(daftarAntrean));
+    // 3. Tembak data ke Server Backend menggunakan fetch() API
+    fetch('http://localhost:3000/api/antrean', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dataPasien)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Gagal mendaftar ke server');
+        }
+        return response.json();
+    })
+    .then(pasienBaru => {
+        // 4. Jika backend sukses menyimpan, tampilkan Tiket Digital ke layar
+        document.getElementById('outputNama').innerText = pasienBaru.nama;
+        document.getElementById('outputDokter').innerText = pasienBaru.dokter;
+        document.getElementById('outputJadwal').innerText = tanggalInput + ' | ' + pasienBaru.jam;
+        document.getElementById('outputNomor').innerText = pasienBaru.nomor;
 
-    // 6. Tampilkan ke Tiket Digital Pasien
-    document.getElementById('outputNama').innerText = namaInput;
-    document.getElementById('outputDokter').innerText = dokterInput;
-    document.getElementById('outputJadwal').innerText = tanggalInput + ' | ' + jamInput;
-    document.getElementById('outputNomor').innerText = formatNomor;
+        // Tampilkan kotak tiket
+        tiket.style.display = 'block';
 
-    tiket.style.display = 'block';
-    form.reset();
-    tiket.scrollIntoView({ behavior: 'smooth' });
+        // Mengosongkan form kembali
+        form.reset();
+        
+        // Otomatis scroll layar kebawah agar tiket terlihat
+        tiket.scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Maaf, server sedang bermasalah. Gagal mengambil nomor antrean.');
+    });
 });
 
     </script>
