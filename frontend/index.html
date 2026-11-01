@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservasi Klinik Sehat</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 500px; background: white; padding: 30px; margin: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+        input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #2ecc71; color: white; border: none; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Pendaftaran Antrean Klinik</h2>
+    <form id="formAman">
+        <div class="form-group">
+            <label for="nama">Nama Lengkap Pasien</label>
+            <input type="text" id="nama" placeholder="Masukkan nama Anda" required>
+        </div>
+
+        <div class="form-group">
+            <label for="dokter">Pilih Dokter / Spesialis</label>
+            <select id="dokter" required>
+                <option value="">-- Pilih Dokter --</option>
+                <option value="dr-budi">dr. Budi (Dokter Umum)</option>
+                <option value="dr-siti">dr. Siti (Spesialis Anak)</option>
+                <option value="dr-andika">dr. Andika (Dokter Gigi)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="tanggal">Tanggal Kunjungan</label>
+            <input type="date" id="tanggal" required>
+        </div>
+
+        <div class="form-group">
+            <label for="jam">Slot Waktu</label>
+            <select id="jam" required>
+                <option value="">-- Pilih Jam --</option>
+                <option value="09:00">09:00 - 10:00 WIB</option>
+                <option value="10:00">10:00 - 11:00 WIB</option>
+                <option value="13:00">13:00 - 14:00 WIB</option>
+                <option value="14:00">14:00 - 15:00 WIB</option>
+            </select>
+        </div>
+
+        <button type="submit">Ambil Nomor Antrean</button>
+    </form>
+</div>
+    <!-- Tempat untuk Menampilkan Tiket Antrean -->
+    <div id="tiketAntrean" class="container" style="display: none; margin-top: 20px; border-top: 4px solid #2ecc71; text-align: center;">
+        <h3 style="color: #2c3e50; margin-bottom: 5px;">TIKET ANTREAN DIGITAL</h3>
+        <p style="color: #7f8c8d; font-size: 14px; margin-top: 0;">Klinik Sehat Mandiri</p>
+        <hr>
+        <p>Nama Pasien: <strong id="outputNama">-</strong></p>
+        <p>Dokter: <strong id="outputDokter">-</strong></p>
+        <p>Jadwal: <strong id="outputJadwal">-</strong></p>
+        <div style="background: #f4f7f6; padding: 15px; border-radius: 6px; margin: 15px 0;">
+            <span style="font-size: 14px; color: #7f8c8d; display: block;">NOMOR ANTREAN</span>
+            <span id="outputNomor" style="font-size: 48px; font-weight: bold; color: #2ecc71;">A-000</span>
+        </div>
+        <p style="font-size: 12px; color: #e74c3c;">*Harap datang 15 menit sebelum slot waktu pilihan Anda.</p>
+    </div>
+
+    <script>
+        // Mengambil elemen form dan elemen output tiket
+        const form = document.getElementById('formAman');
+        const tiket = document.getElementById('tiketAntrean');
+
+        form.addEventListener('submit', function(event) {
+            // Mencegah halaman reload saat tombol ditekan
+            event.preventDefault();
+
+            // Mengambil data yang diinput oleh user
+            const namaInput = document.getElementById('nama').value;
+            const dokterInput = document.getElementById('dokter').options[document.getElementById('dokter').selectedIndex].text;
+            const tanggalInput = document.getElementById('tanggal').value;
+            const jamInput = document.getElementById('jam').options[document.getElementById('jam').selectedIndex].text;
+
+            // Membuat simulasi nomor antrean acak (nanti bagian ini akan diganti oleh sistem database backend)
+            const nomorAcak = Math.floor(Math.random() * 50) + 1;
+            const formatNomor = 'A-' + String(nomorAcak).padStart(3, '0');
+
+            // Memasukkan data input ke dalam teks tiket
+            document.getElementById('outputNama').innerText = namaInput;
+            document.getElementById('outputDokter').innerText = dokterInput;
+            document.getElementById('outputJadwal').innerText = tanggalInput + ' | ' + jamInput;
+            document.getElementById('outputNomor').innerText = formatNomor;
+
+            // Menampilkan tiket antrean ke layar
+            tiket.style.display = 'block';
+
+            // Mengosongkan form kembali setelah mendaftar
+            form.reset();
+            
+            // Otomatis scroll layar kebawah agar tiket langsung terlihat
+            tiket.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+
+</body>
+</html>
